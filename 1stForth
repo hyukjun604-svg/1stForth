@@ -1,0 +1,534 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Users, 
+  UserPlus, 
+  Trash2, 
+  Bell, 
+  Calendar, 
+  BookOpen, 
+  Award, 
+  Search, 
+  Globe, 
+  CheckCircle,
+  Clock,
+  Sparkles,
+  Heart
+} from 'lucide-react';
+
+export default function App() {
+  // 탭 상태
+  const [activeTab, setActiveTab] = useState('home');
+
+  // 학생 명단 상태
+  const [students, setStudents] = useState([
+    { id: 1, number: 1, name: '강민준', role: '반장', points: 15, memo: '밝고 활발함' },
+    { id: 2, number: 2, name: '김서연', role: '부반장', points: 12, memo: '책임감이 강함' },
+    { id: 3, number: 3, name: '박도윤', role: '미백부장', points: 8, memo: '그림을 잘 그림' },
+    { id: 4, number: 4, name: '이지우', role: '학생', points: 10, memo: '발표를 잘함' },
+    { id: 5, number: 5, name: '최현우', role: '학생', points: 5, memo: '운동을 좋아함' }
+  ]);
+
+  // 학생 추가 폼 상태
+  const [newNum, setNewNum] = useState('');
+  const [newName, setNewName] = useState('');
+  const [newRole, setNewRole] = useState('학생');
+  const [newMemo, setNewMemo] = useState('');
+
+  // 검색어 상태
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // 공지사항 상태
+  const [notices, setNotices] = useState([
+    { id: 1, title: '다음 주 금요일 현장체험학습 안내', date: '2026-11-05', author: '담임선생님', important: true },
+    { id: 2, title: '학급 규칙 및 청소 구역 안내', date: '2026-11-02', author: '반장', important: false },
+    { id: 3, title: '동아리 활동 신청 마감일 안내', date: '2026-10-28', author: '담임선생님', important: false }
+  ]);
+
+  // 새 공지사항 폼 상태
+  const [noticeTitle, setNoticeTitle] = useState('');
+  const [noticeImportant, setNoticeImportant] = useState(false);
+
+  // 학생 추가 함수
+  const handleAddStudent = (e) => {
+    e.preventDefault();
+    if (!newName.trim()) return;
+
+    const nextId = students.length > 0 ? Math.max(...students.map(s => s.id)) + 1 : 1;
+    const num = newNum ? parseInt(newNum) : (students.length + 1);
+
+    const newStudent = {
+      id: nextId,
+      number: num,
+      name: newName.trim(),
+      role: newRole,
+      points: 0,
+      memo: newMemo.trim() || '신규 학생'
+    };
+
+    setStudents([...students, newStudent].sort((a, b) => a.number - b.number));
+    
+    // Reset Form
+    setNewNum('');
+    setNewName('');
+    setNewRole('학생');
+    setNewMemo('');
+  };
+
+  // 학생 삭제 함수
+  const handleDeleteStudent = (id) => {
+    setStudents(students.filter(s => s.id !== id));
+  };
+
+  // 상점 부여 함수
+  const handleAddPoint = (id) => {
+    setStudents(students.map(s => s.id === id ? { ...s, points: s.points + 1 } : s));
+  };
+
+  // 공지사항 추가 함수
+  const handleAddNotice = (e) => {
+    e.preventDefault();
+    if (!noticeTitle.trim()) return;
+
+    const today = new Date().toISOString().split('T')[0];
+    const newEntry = {
+      id: Date.now(),
+      title: noticeTitle.trim(),
+      date: today,
+      author: '담임선생님',
+      important: noticeImportant
+    };
+
+    setNotices([newEntry, ...notices]);
+    setNoticeTitle('');
+    setNoticeImportant(false);
+  };
+
+  // 필터링된 학생 명단
+  const filteredStudents = students.filter(s => 
+    s.name.includes(searchTerm) || s.number.toString().includes(searchTerm) || s.role.includes(searchTerm)
+  );
+
+  // 주간 시간표 데이터
+  const timetable = [
+    { period: '1교시', mon: '국어', tue: '수학', wed: '영어', thu: '과학', fri: '사회' },
+    { period: '2교시', mon: '수학', tue: '영어', wed: '국어', thu: '체육', fri: '음악' },
+    { period: '3교시', mon: '영어', tue: '과학', wed: '사회', thu: '국어', fri: '미술' },
+    { period: '4교시', mon: '과학', tue: '사회', wed: '체육', thu: '수학', fri: '도덕' },
+    { period: '5교시', mon: '체육', tue: '음악', wed: '동아리', thu: '영어', fri: '진로' },
+    { period: '6교시', mon: '사회', tue: '미술', wed: '동아리', thu: '국어', fri: '학급회의' },
+  ];
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans">
+      {/* 주소 표시 브라우저 바 (요청된 주소 강조) */}
+      <div className="bg-slate-900 text-slate-300 px-4 py-2.5 flex items-center gap-3 text-sm shadow-inner">
+        <div className="flex gap-1.5">
+          <div className="w-3 h-3 rounded-full bg-red-500"></div>
+          <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+          <div className="w-3 h-3 rounded-full bg-green-500"></div>
+        </div>
+        <div className="flex-1 bg-slate-800 rounded-md px-3 py-1 flex items-center gap-2 max-w-xl text-xs sm:text-sm text-slate-200">
+          <Globe className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span className="font-mono text-emerald-400">https://</span>
+          <span className="font-mono font-semibold text-white">www.1stforth.com</span>
+        </div>
+        <span className="text-xs bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded hidden sm:inline-block">
+          1학년 4반 공식 학급 웹사이트
+        </span>
+      </div>
+
+      {/* 내비게이션 헤더 */}
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white font-bold text-lg shadow-md shadow-indigo-200">
+              1-4
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-slate-900 leading-tight">1학년 4반 학급 홈페이지</h1>
+              <p className="text-xs text-slate-500">꿈과 희망이 커가는 포근한 우리 교실 🌟</p>
+            </div>
+          </div>
+
+          {/* 탭 버튼 메뉴 */}
+          <nav className="flex bg-slate-100 p-1 rounded-xl gap-1 w-full sm:w-auto overflow-x-auto">
+            <button
+              onClick={() => setActiveTab('home')}
+              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all whitespace-nowrap ${
+                activeTab === 'home'
+                  ? 'bg-white text-indigo-600 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+              }`}
+            >
+              <Bell className="w-4 h-4" /> 홈 & 공지
+            </button>
+            <button
+              onClick={() => setActiveTab('students')}
+              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all whitespace-nowrap ${
+                activeTab === 'students'
+                  ? 'bg-white text-indigo-600 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+              }`}
+            >
+              <Users className="w-4 h-4" /> 학생 명단 ({students.length}명)
+            </button>
+            <button
+              onClick={() => setActiveTab('timetable')}
+              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all whitespace-nowrap ${
+                activeTab === 'timetable'
+                  ? 'bg-white text-indigo-600 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+              }`}
+            >
+              <Calendar className="w-4 h-4" /> 시간표 & 급식
+            </button>
+          </nav>
+        </div>
+      </header>
+
+      {/* 메인 컨텐츠 영역 */}
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+        
+        {/* 1. 홈 & 공지사항 탭 */}
+        {activeTab === 'home' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* 좌측 메인 섹션 */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* 학급 소개 배너 */}
+              <div className="bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-800 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
+                <div className="absolute top-0 right-0 transform translate-x-4 -translate-y-4 opacity-10">
+                  <Sparkles className="w-64 h-64" />
+                </div>
+                <div className="relative z-10">
+                  <span className="bg-indigo-500/40 text-indigo-100 text-xs px-3 py-1 rounded-full border border-indigo-400/30 font-medium">
+                    2026학년도 학분위기 최고!
+                  </span>
+                  <h2 className="text-2xl sm:text-3xl font-extrabold mt-3 mb-2">
+                    반가워요, 1학년 4반입니다! 👋
+                  </h2>
+                  <p className="text-indigo-100 text-sm sm:text-base leading-relaxed max-w-lg">
+                    우리 반의 소식과 공지사항을 확인하고, 친구들의 멋진 활동을 응원해보세요. 서로 존중하고 배려하는 즐거운 교실을 만들어가요!
+                  </p>
+                  <div className="mt-6 flex flex-wrap gap-4 text-xs font-medium">
+                    <div className="bg-white/10 backdrop-blur-md px-3 py-2 rounded-lg border border-white/10 flex items-center gap-2">
+                      <Users className="w-4 h-4 text-indigo-200" />
+                      <span>총 학생 수: <strong>{students.length}명</strong></span>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-md px-3 py-2 rounded-lg border border-white/10 flex items-center gap-2">
+                      <Heart className="w-4 h-4 text-pink-300" />
+                      <span>학급 급훈: <strong>더불어 함께 성장하자</strong></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 공지사항 목록 */}
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <Bell className="w-5 h-5 text-indigo-600" /> 학급 알림장 및 공지
+                  </h3>
+                  <span className="text-xs text-slate-500">총 {notices.length}건</span>
+                </div>
+
+                {/* 공지 등록 폼 */}
+                <form onSubmit={handleAddNotice} className="mb-6 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <input
+                      type="text"
+                      placeholder="새 알림장 소식을 입력하세요..."
+                      value={noticeTitle}
+                      onChange={(e) => setNoticeTitle(e.target.value)}
+                      className="flex-1 px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                    <label className="flex items-center gap-2 text-xs text-slate-600 cursor-pointer select-none px-1">
+                      <input
+                        type="checkbox"
+                        checked={noticeImportant}
+                        onChange={(e) => setNoticeImportant(e.target.checked)}
+                        className="rounded text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <span>중요 알림</span>
+                    </label>
+                    <button
+                      type="submit"
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+                    >
+                      등록
+                    </button>
+                  </div>
+                </form>
+
+                {/* 공지 리스트 */}
+                <div className="space-y-3">
+                  {notices.map((notice) => (
+                    <div 
+                      key={notice.id}
+                      className={`p-4 rounded-xl border transition-all flex justify-between items-center ${
+                        notice.important 
+                          ? 'bg-amber-50/60 border-amber-200 text-amber-950' 
+                          : 'bg-white border-slate-100 hover:border-slate-200 text-slate-800'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        {notice.important ? (
+                          <span className="bg-amber-500 text-white text-[10px] px-2 py-0.5 rounded font-bold mt-0.5 shrink-0">
+                            중요
+                          </span>
+                        ) : (
+                          <span className="bg-slate-200 text-slate-600 text-[10px] px-2 py-0.5 rounded font-medium mt-0.5 shrink-0">
+                            일반
+                          </span>
+                        )}
+                        <div>
+                          <p className="font-semibold text-sm sm:text-base">{notice.title}</p>
+                          <div className="flex gap-3 text-xs text-slate-400 mt-1">
+                            <span>작성자: {notice.author}</span>
+                            <span>•</span>
+                            <span>{notice.date}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* 우측 사이드바 */}
+            <div className="space-y-6">
+              {/* 반장/부반장 스포트라이트 */}
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                <h3 className="text-md font-bold text-slate-900 mb-4 flex items-center gap-2">
+                  <Award className="w-5 h-5 text-amber-500" /> 학급 임원진
+                </h3>
+                <div className="space-y-3">
+                  {students.filter(s => s.role.includes('반장')).map((leader) => (
+                    <div key={leader.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-xs">
+                          {leader.number}
+                        </div>
+                        <div>
+                          <p className="font-bold text-sm text-slate-800">{leader.name}</p>
+                          <p className="text-xs text-indigo-600 font-medium">{leader.role}</p>
+                        </div>
+                      </div>
+                      <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-full font-medium">
+                        칭찬 {leader.points}회
+                      </span>
+                    </div>
+                  ))}
+                  {students.filter(s => s.role.includes('반장')).length === 0 && (
+                    <p className="text-xs text-slate-400 text-center py-2">등록된 학급 임원이 없습니다.</p>
+                  )}
+                </div>
+              </div>
+
+              {/* 오늘 급식 안내 간이 카드 */}
+              <div className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white p-5 rounded-2xl shadow-sm">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="font-bold text-md flex items-center gap-2">
+                    <BookOpen className="w-5 h-5" /> 오늘의 급식
+                  </h3>
+                  <span className="text-xs bg-white/20 px-2 py-0.5 rounded text-white">중식</span>
+                </div>
+                <ul className="text-xs sm:text-sm space-y-1.5 text-emerald-50">
+                  <li>• 발아현미밥</li>
+                  <li>• 쇠고기미역국</li>
+                  <li>• 수제돈가스 & 소스</li>
+                  <li>• 칠리감자조림</li>
+                  <li>• 배추김치 / 샤인머스캣</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 2. 학생 명단 관리 탭 */}
+        {activeTab === 'students' && (
+          <div className="space-y-6">
+            {/* 상단 컨트롤러: 추가 폼 & 검색 */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* 학생 추가 입력 폼 */}
+              <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                  <UserPlus className="w-5 h-5 text-indigo-600" /> 신규 학생 등록
+                </h3>
+                <form onSubmit={handleAddStudent} className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1">번호 (선택)</label>
+                    <input
+                      type="number"
+                      placeholder="예: 1"
+                      value={newNum}
+                      onChange={(e) => setNewNum(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1">학생 이름 *</label>
+                    <input
+                      type="text"
+                      placeholder="이름 입력..."
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      required
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1">직책 / 역할</label>
+                    <select
+                      value={newRole}
+                      onChange={(e) => setNewRole(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                    >
+                      <option value="학생">학생</option>
+                      <option value="반장">반장</option>
+                      <option value="부반장">부반장</option>
+                      <option value="미백부장">미백부장</option>
+                      <option value="체육부장">체육부장</option>
+                      <option value="환경부장">환경부장</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1">비고 / 메모</label>
+                    <input
+                      type="text"
+                      placeholder="특기사항이나 메모"
+                      value={newMemo}
+                      onChange={(e) => setNewMemo(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg text-sm transition mt-2 flex items-center justify-center gap-2"
+                  >
+                    <UserPlus className="w-4 h-4" /> 학생 추가하기
+                  </button>
+                </form>
+              </div>
+
+              {/* 학생 검색 및 카드리스트 */}
+              <div className="lg:col-span-2 space-y-4">
+                <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
+                  <div className="relative w-full sm:w-72">
+                    <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="이름, 번호, 역할 검색..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50"
+                    />
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    검색 결과: <strong className="text-indigo-600">{filteredStudents.length}</strong> 명
+                  </div>
+                </div>
+
+                {/* 학생 목록 그리드 */}
+                {filteredStudents.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {filteredStudents.map((student) => (
+                      <div 
+                        key={student.id} 
+                        className="bg-white p-4 rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-md transition duration-200 flex flex-col justify-between"
+                      >
+                        <div>
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-700 font-bold text-xs flex items-center justify-center border border-indigo-100">
+                                {student.number}번
+                              </span>
+                              <h4 className="font-bold text-slate-900 text-base">{student.name}</h4>
+                            </div>
+                            <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${
+                              student.role === '반장' || student.role === '부반장'
+                                ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                                : 'bg-slate-100 text-slate-600'
+                            }`}>
+                              {student.role}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-500 mb-3 bg-slate-50 p-2 rounded-lg">
+                            {student.memo}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+                          <button
+                            onClick={() => handleAddPoint(student.id)}
+                            className="text-emerald-600 hover:bg-emerald-50 px-2 py-1 rounded transition flex items-center gap-1 font-medium"
+                          >
+                            ⭐ 칭찬 스티커 ({student.points})
+                          </button>
+                          <button
+                            onClick={() => handleDeleteStudent(student.id)}
+                            className="text-slate-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded transition"
+                            title="학생 삭제"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-400 text-sm">
+                    검색 조건에 일치하는 학생이 없습니다.
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 3. 시간표 & 급식 탭 */}
+        {activeTab === 'timetable' && (
+          <div className="space-y-6">
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+              <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <Clock className="w-5 h-5 text-indigo-600" /> 주간 학급 시간표
+              </h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-center border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50 text-slate-600 text-xs font-semibold border-b border-slate-200">
+                      <th className="py-3 px-4">교시</th>
+                      <th className="py-3 px-4">월요일</th>
+                      <th className="py-3 px-4">화요일</th>
+                      <th className="py-3 px-4">수요일</th>
+                      <th className="py-3 px-4">목요일</th>
+                      <th className="py-3 px-4">금요일</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
+                    {timetable.map((row, idx) => (
+                      <tr key={idx} className="hover:bg-indigo-50/30 transition">
+                        <td className="py-3 px-4 font-bold text-slate-500 bg-slate-50/50 text-xs">{row.period}</td>
+                        <td className="py-3 px-4">{row.mon}</td>
+                        <td className="py-3 px-4">{row.tue}</td>
+                        <td className="py-3 px-4">{row.wed}</td>
+                        <td className="py-3 px-4">{row.thu}</td>
+                        <td className="py-3 px-4">{row.fri}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* 푸터 */}
+      <footer className="bg-white border-t border-slate-200 mt-12 py-6 text-center text-xs text-slate-400">
+        <p>www.1stforth.com • 1학년 4반 학급 공간</p>
+        <p className="mt-1">Copyright © 1st Grade Class 4. All rights reserved.</p>
+      </footer>
+    </div>
+  );
+}
